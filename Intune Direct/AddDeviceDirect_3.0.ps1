@@ -280,5 +280,8 @@ Wait-UntilComplete -Device $importIdentity
 
 # Remove tracks
 
+Remove-Module -Name PartnerCenter
+Remove-Module -Name WindowsAutoPilotIntune
+
 Uninstall-Module -Name PartnerCenter
 Uninstall-Module -Name WindowsAutoPilotIntune
