@@ -167,7 +167,7 @@ Install-Module -Name WindowsAutoPilotIntune -Force
 Install-Module -Name PartnerCenter -Force
 
 # Connect to Partner Center
-Write-Host "Initiating interactive sign-in. You will be signing in to Microsoft Partner Center, under the application name $($APP_ID)."
+Write-Host "Initiating interactive sign-in. You will be signing in to Microsoft Partner Center, under the application $($PARTNER_APP_ID)."
 try {
     if ($DEVICE_CODE_AUTH) {
         $partnerToken = New-PartnerAccessToken -ApplicationId $PARTNER_APP_ID -Scopes 'https://api.partnercenter.microsoft.com/user_impersonation' -UseDeviceAuthentication
