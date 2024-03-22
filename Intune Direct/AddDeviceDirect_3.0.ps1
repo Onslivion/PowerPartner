@@ -159,6 +159,7 @@ function Wait-UntilComplete { # Credit to authors of https://www.powershellgalle
 
 if (!($PARTNER_APP_ID -or $APP_ID -or $APP_NAME)) {
     Write-Error "The script is missing one of the necessary constants: PARTNER_APP_ID, APP_ID, or APP_NAME"
+    exit
 }
 
 # Install necessary modules
