@@ -2,10 +2,19 @@
 
 # KEEP THE FOLLOWING CONSISTENT BETWEEN TENANTS! NO CLUTTER!
 
+# Application ID as shown in Entra ID. This is for both the partner tenant and the intended tenant.
 $APP_ID = ''
+# Friendly / Display name of the application (as shown in Entra ID)
 $APP_NAME = ""
 
+# Group tag to be used in Autopilot (we use this for device deployment profile assignment via dynamic device security groups)
 $DEFAULT_GROUP_TAG = "Default"
+
+
+
+
+
+# SCRIPT
 
 # Credit to https://tminus365.com/my-automations-break-with-gdap-the-fix/ for the inspiration / Partner Center implementation to accomodate for GDAP
 
