@@ -184,10 +184,13 @@ catch {
 }
 
 # Obtain tenant ID, group tag and assigned user
-if ($DEFAULT_TENANT -and !$FORCE_DEFAULTS) {
+if (!($FORCE_DEFAULTS -and $DEFAULT_TENANT)) {
     do {
-        $tenantDomain = Read-Host -Prompt "Please enter a domain belonging to the intended tenant"
+        $tenantDomain = Read-Host -Prompt "Please enter a domain belonging to the intended tenant (Default: '$($DEFAULT_TENANT)')"
         try {
+            if (!$tenantDomain) {
+                $tenantDomain = $DEFAULT_TENANT
+            }
             $tenantId = Get-TenantID $tenantDomain
             Write-Host "$($tenantDomain) | $($tenantId)"
             do {
@@ -205,9 +208,9 @@ else {
     $tenantId = Get-TenantID $DEFAULT_TENANT
 }
 
-if ($DEFAULT_GROUP_TAG -and !$FORCE_DEFAULTS) {
+if (!$FORCE_DEFAULTS) {
     do {
-        $GroupTag = Read-Host -Prompt "Enter the group tag of the device (Default: $($DEFAULT_GROUP_TAG))"
+        $GroupTag = Read-Host -Prompt "Enter the group tag of the device (Default: '$($DEFAULT_GROUP_TAG)')"
         if (!$GroupTag) {
             $GroupTag = $DEFAULT_GROUP_TAG
             break
