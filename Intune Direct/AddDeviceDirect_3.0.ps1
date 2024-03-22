@@ -1,6 +1,6 @@
 # Constants
 
-# KEEP THE FOLLOWING CONSISTENT BETWEEN TENANTS! NO CLUTTER!
+# The following 3 constants are required for the script to work.
 
 # Application ID of the application used to sign in to to access Partner Portal
 # Ensure the principal is in the AdminAgents group, and has the user_impersonation permission
@@ -155,6 +155,12 @@ function Wait-UntilComplete { # Credit to authors of https://www.powershellgalle
 
 }
 
+# Check if required parameters are filled
+
+if (!($PARTNER_APP_ID -or $APP_ID -or $APP_NAME)) {
+    Write-Error "The script is missing one of the necessary constants: PARTNER_APP_ID, APP_ID, or APP_NAME"
+}
+
 # Install necessary modules
 
 Install-Module -Name WindowsAutoPilotIntune -Force
@@ -164,7 +170,7 @@ Install-Module -Name PartnerCenter -Force
 Write-Host "Initiating interactive sign-in. You will be signing in to Microsoft Partner Center, under the application name $($APP_ID)."
 try {
     if ($DEVICE_CODE_AUTH) {
-        $partnerToken = New-PartnerAccessToken -ApplicationId $PARNTER_APP_ID -Scopes 'https://api.partnercenter.microsoft.com/user_impersonation' -UseDeviceAuthentication
+        $partnerToken = New-PartnerAccessToken -ApplicationId $PARTNER_APP_ID -Scopes 'https://api.partnercenter.microsoft.com/user_impersonation' -UseDeviceAuthentication
     }
     else {
         $partnerToken = New-PartnerAccessToken -ApplicationId $PARTNER_APP_ID -Scopes 'https://api.partnercenter.microsoft.com/user_impersonation' -UseAuthorizationCode
