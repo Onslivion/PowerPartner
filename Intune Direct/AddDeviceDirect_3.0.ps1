@@ -140,8 +140,8 @@ function Wait-UntilComplete { # Credit to authors of https://www.powershellgalle
         $assignStart = Get-Date
         do {
             $processed = $false
-            $assignCheck = $(Get-AutopilotDevice -Expand -id $importCheck.state.deviceRegistrationId).deploymentProfileAssignmentStatus.StartsWith("assigned")
-            if (!$assignCheck) {
+            $assignCheck = Get-AutopilotDevice -Expand -id $importCheck.state.deviceRegistrationId
+            if (!$assignCheck.deploymentProfileAssignmentStatus.StartsWith("assigned")) {
                 Write-Host "Awaiting assignment to a deployment profile... Current Status: $($assignCheck)"
                 Start-Sleep 30
             }
