@@ -19,6 +19,10 @@ $DEFAULT_GROUP_TAG = "Default"
 
 # Enable assigned users entry
 $ENABLE_ASSIGN_USER = $false
+# Enable device code authentication
+# Prompts the user to enter a code at https://microsoft.com/devicelogin instead of opening a new browser window
+# NOTE: Public client flows in the tenant app registration (in "Authentication") must be enabled, else this will error out.
+$DEVICE_CODE_AUTH = $true
 # Force all defaults.
 # This setting will do the following;
 # - Use the default value (defined above) without prompting the user
@@ -171,9 +175,14 @@ if ($APP_SECRET) {
     }
 }
 else {
-    Write-Host "Opening a window to sign in to Microsoft Partner Center via internal Intune Deployment app registration. Please enter your credentials."
+    Write-Host "Initiating interactive sign-in. You will be signing in to Microsoft Partner Center, under the application name $($APP_ID)."
     try {
-        $partnerToken = New-PartnerAccessToken -ApplicationId $APP_ID -Scopes 'https://api.partnercenter.microsoft.com/user_impersonation' -UseAuthorizationCode
+        if ($DEVICE_CODE_AUTH) {
+            $partnerToken = New-PartnerAccessToken -ApplicationId $APP_ID -Scopes 'https://api.partnercenter.microsoft.com/user_impersonation' -UseDeviceAuthentication
+        }
+        else {
+            $partnerToken = New-PartnerAccessToken -ApplicationId $APP_ID -Scopes 'https://api.partnercenter.microsoft.com/user_impersonation' -UseAuthorizationCode
+        }
         Connect-PartnerCenter -AccessToken $partnerToken.AccessToken
     }
     catch {
