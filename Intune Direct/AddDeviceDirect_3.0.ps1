@@ -6,11 +6,6 @@
 $APP_ID = ''
 # Friendly / Display name of the application (as shown in Entra ID)
 $APP_NAME = ""
-# Optional app secret for the partner tenant application. 
-# This negates the need for interactive authentication. When empty, interactive authentication occurs
-# STORING APP SECRETS IN PLAINTEXT IS A SECURITY RISK
-# USE ONLY WHEN NECESSARY
-$APP_SECRET = ""
 
 # Default intended tenant domain or ID to use (this is useful for mass deployment to a single tenant)
 $DEFAULT_TENANT = ""
@@ -162,34 +157,21 @@ Install-Module -Name WindowsAutoPilotIntune -Force
 Install-Module -Name PartnerCenter -Force
 
 # Connect to Partner Center
-if ($APP_SECRET) {
-    Write-Host "Attempting to authenticate to Microsoft Partner Center using application credentials"
-    try {
-        $cred = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $APP_ID, $APP_SECRET
-        $partnerToken = New-PartnerAccessToken -ApplicationId $APP_ID -Scopes 'https://api.partnercenter.microsoft.com/user_impersonation' -ServicePrincipal -Credential $cred
-        Connect-PartnerCenter -AccessToken $partnerToken.AccessToken
+Write-Host "Initiating interactive sign-in. You will be signing in to Microsoft Partner Center, under the application name $($APP_ID)."
+try {
+    if ($DEVICE_CODE_AUTH) {
+        $partnerToken = New-PartnerAccessToken -ApplicationId $APP_ID -Scopes 'https://api.partnercenter.microsoft.com/user_impersonation' -UseDeviceAuthentication
     }
-    catch {
-        Write-Host "There was a problem signing in to Microsoft Partner Center. Ensure your application secret is correct and verify Partner Center status."
-        exit
+    else {
+        $partnerToken = New-PartnerAccessToken -ApplicationId $APP_ID -Scopes 'https://api.partnercenter.microsoft.com/user_impersonation' -UseAuthorizationCode
     }
+    Connect-PartnerCenter -AccessToken $partnerToken.AccessToken
 }
-else {
-    Write-Host "Initiating interactive sign-in. You will be signing in to Microsoft Partner Center, under the application name $($APP_ID)."
-    try {
-        if ($DEVICE_CODE_AUTH) {
-            $partnerToken = New-PartnerAccessToken -ApplicationId $APP_ID -Scopes 'https://api.partnercenter.microsoft.com/user_impersonation' -UseDeviceAuthentication
-        }
-        else {
-            $partnerToken = New-PartnerAccessToken -ApplicationId $APP_ID -Scopes 'https://api.partnercenter.microsoft.com/user_impersonation' -UseAuthorizationCode
-        }
-        Connect-PartnerCenter -AccessToken $partnerToken.AccessToken
-    }
-    catch {
-        Write-Host "There was a problem signing in to Microsoft Partner Center. Verify your access and the status of Partner Center."
-        exit
-    }
+catch {
+    Write-Host "There was a problem signing in to Microsoft Partner Center. Verify your access and the status of Partner Center."
+    exit
 }
+
 # Obtain tenant ID, group tag and assigned user
 if ($DEFAULT_TENANT -and !$FORCE_DEFAULTS) {
     do {
