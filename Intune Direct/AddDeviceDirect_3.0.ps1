@@ -7,9 +7,18 @@ $APP_ID = ''
 # Friendly / Display name of the application (as shown in Entra ID)
 $APP_NAME = ""
 
-# Group tag to be used in Autopilot (we use this for device deployment profile assignment via dynamic device security groups)
+# Default intended tenant domain or ID to use (this is useful for mass deployment to a single tenant)
+$DEFAULT_TENANT = ""
+# Group tag to be used in Autopilot. (we use this for device deployment profile assignment via dynamic device security groups)
 $DEFAULT_GROUP_TAG = "Default"
 
+# Enable assigned users entry
+$ENABLE_ASSIGN_USER = $false
+# Force all defaults.
+# This setting will do the following;
+# - Use the default value (defined above) without prompting the user
+# - If no default is present, prompt the user for input
+$FORCE_DEFAULTS = $true
 
 
 
@@ -155,47 +164,63 @@ catch {
     exit
 }
 
-# Obtain tenant ID, group tag (if applicable), and assigned user (if applicable)
+# Obtain tenant ID, group tag and assigned user
+if ($DEFAULT_TENANT -and !$FORCE_DEFAULTS) {
+    do {
+        $tenantDomain = Read-Host -Prompt "Please enter a domain belonging to the intended tenant"
+        try {
+            $tenantId = Get-TenantID $tenantDomain
+            Write-Host "$($tenantDomain) | $($tenantId)"
+            do {
+                $Confirmation = Read-Host -Prompt "Is this correct? (y/N)"
+            } while (!(($Confirmation.ToLower() -eq "y" ) -or ($Confirmation.ToLower() -eq "n") -or (!$Confirmation)))
+        }
+        catch {
+            Write-Host "Domain could not be found."
+            $Confirmation = "N"
+        }
+    } while ($Confirmation.ToLower() -ne "y")
+}
+else {
+    Write-Host "Using default tenant $($DEFAULT_TENANT)"
+    $tenantId = Get-TenantID $DEFAULT_TENANT
+}
 
-do {
-    $tenantDomain = Read-Host -Prompt "Please enter a domain belonging to the intended tenant"
-    try {
-        $tenantId = Get-TenantID $tenantDomain
-        Write-Host "$($tenantDomain) | $($tenantId)"
-        do {
-            $Confirmation = Read-Host -Prompt "Is this correct? (y/N)"
-        } while (!(($Confirmation.ToLower() -eq "y" ) -or ($Confirmation.ToLower() -eq "n") -or (!$Confirmation)))
-    }
-    catch {
-        Write-Host "Domain could not be found."
-        $Confirmation = "N"
-    }
-} while ($Confirmation.ToLower() -ne "y")
+if ($DEFAULT_GROUP_TAG -and !$FORCE_DEFAULTS) {
+    do {
+        $GroupTag = Read-Host -Prompt "Enter the group tag of the device (Default: $($DEFAULT_GROUP_TAG))"
+        if (!$GroupTag) {
+            $GroupTag = $DEFAULT_GROUP_TAG
+            break
+        }
+        else {
+            do {
+                $Confirmation = Read-Host -Prompt "Group Tag: '$($GroupTag)' | Correct? (y/N)"
+            } while (!(($Confirmation.ToLower() -eq "y" ) -or ($Confirmation.ToLower() -eq "n") -or (!$Confirmation)))
+        }
+    } while ($Confirmation.ToLower() -ne "y")
+}
+else {
+    Write-Host "Using default group tag $($DEFAULT_GROUP_TAG)"
+    $GroupTag = $DEFAULT_GROUP_TAG 
+}
 
-do {
-    $GroupTag = Read-Host -Prompt "Enter the group tag of the device (Default: $($DEFAULT_GROUP_TAG))"
-    if (!$GroupTag) {
-        $GroupTag = $DEFAULT_GROUP_TAG
-        break
-    }
-    else {
-        do {
-            $Confirmation = Read-Host -Prompt "Group Tag: '$($GroupTag)' | Correct? (y/N)"
-        } while (!(($Confirmation.ToLower() -eq "y" ) -or ($Confirmation.ToLower() -eq "n") -or (!$Confirmation)))
-    }
-} while ($Confirmation.ToLower() -ne "y")
-
-do {
-    $AssignedUser = Read-Host -Prompt "Enter the UPN of the assigned user of the device (Press enter if none)"
-    if (!$AssignedUser) {
-        break
-    }
-    else {
-        do {
-            $Confirmation = Read-Host -Prompt "Assigned User: '$($AssignedUser)' | Correct? (y/N)"
-        } while (!(($Confirmation.ToLower() -eq "y" ) -or ($Confirmation.ToLower() -eq "n") -or (!$Confirmation)))
-    }
-} while ($Confirmation.ToLower() -ne "y")
+if ($ENABLE_ASSIGN_USER) {
+    do {
+        $AssignedUser = Read-Host -Prompt "Enter the UPN of the assigned user of the device (Press enter if none)"
+        if (!$AssignedUser) {
+            break
+        }
+        else {
+            do {
+                $Confirmation = Read-Host -Prompt "Assigned User: '$($AssignedUser)' | Correct? (y/N)"
+            } while (!(($Confirmation.ToLower() -eq "y" ) -or ($Confirmation.ToLower() -eq "n") -or (!$Confirmation)))
+        }
+    } while ($Confirmation.ToLower() -ne "y")
+}
+else {
+    Write-Host "User assignment disabled - skipping user assignment"
+}
 
 # Verify there is an "Intune Deployment" partner-managed application in the tenant with the necessary permissions for enrolling devices in Autopilot
 
