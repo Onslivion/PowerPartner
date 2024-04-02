@@ -22,8 +22,6 @@ $ENABLE_ASSIGN_USER = $false
 # Prompts the user to enter a code at https://microsoft.com/devicelogin instead of opening a new browser window
 # NOTE: Public client flows in the tenant app registration (in "Authentication") must be enabled, else this will error out.
 $DEVICE_CODE_AUTH = $true
-# Show a QR code to https://microsoft.com/devicelogin when device code authentication is enabled.
-$ENABLE_QRCODE = $true
 # Force all defaults.
 # This setting will do the following;
 # - Use the default value (defined above) without prompting the user
@@ -173,13 +171,6 @@ Install-Module -Name PartnerCenter -Force
 Write-Host "Initiating interactive sign-in. You will be signing in to Microsoft Partner Center, under the application $($PARTNER_APP_ID)."
 try {
     if ($DEVICE_CODE_AUTH) {
-        if ($ENABLE_QRCODE) {
-            Write-Host "A QR code will be generated shortly for easier navigation to the device code flow."
-            Install-Module -Name QRCodeGenerator -Force
-            New-PSOneQRCodeURI -URI "https://microsoft.com/devicelogin" -Show
-            Remove-Module -Name QRCodeGenerator
-            Uninstall-Module -Name QRCodeGenerator
-        }
         $partnerToken = New-PartnerAccessToken -ApplicationId $PARTNER_APP_ID -Scopes 'https://api.partnercenter.microsoft.com/user_impersonation' -UseDeviceAuthentication
     }
     else {
