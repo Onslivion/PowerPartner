@@ -175,7 +175,7 @@ try {
     if ($DEVICE_CODE_AUTH) {
         if ($ENABLE_QRCODE) {
             Write-Host "A QR code will be generated shortly for easier navigation to the device code flow."
-            Install-Module -Name QRCodeGenerator
+            Install-Module -Name QRCodeGenerator -Force
             New-PSOneQRCodeURI -URI "https://microsoft.com/devicelogin" -Show
             Remove-Module -Name QRCodeGenerator
             Uninstall-Module -Name QRCodeGenerator
@@ -189,6 +189,7 @@ try {
 }
 catch {
     Write-Host "There was a problem signing in to Microsoft Partner Center. Verify your access and the status of Partner Center."
+    Write-Host "Error: $($_)"
     exit
 }
 
