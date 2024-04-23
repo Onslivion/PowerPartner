@@ -1,3 +1,8 @@
+param(
+    [Parameter(Mandatory=$false)][String]$GroupTag,
+    [Parameter(Mandatory=$false)][String]$Tenant
+)
+
 # Constants
 
 # The following 3 constants are required for the script to work.
@@ -185,7 +190,17 @@ catch {
 }
 
 # Obtain tenant ID, group tag and assigned user
-if (!($FORCE_DEFAULTS -and $DEFAULT_TENANT)) {
+if ($PSBoundParameters.ContainsKey("Tenant")) {
+    try {
+        $tenantId = Get-TenantID $Tenant
+    }
+    catch {
+        Write-Host "The tenant ID/domain specified in arguments was invalid. Please ensure that this value is correct before re-executing."
+        exit
+    }
+    Write-Host "Using specified tenant $($Tenant)"
+}
+elseif (!($FORCE_DEFAULTS -and $DEFAULT_TENANT)) {
     do {
         $tenantDomain = Read-Host -Prompt "Please enter a domain belonging to the intended tenant (Default: '$($DEFAULT_TENANT)')"
         try {
@@ -209,7 +224,10 @@ else {
     $tenantId = Get-TenantID $DEFAULT_TENANT
 }
 
-if (!$FORCE_DEFAULTS) {
+if ($PSBoundParameters.ContainsKey("GroupTag")) {
+    Write-Host "Using group tag $($GroupTag) as specified in arguments"
+}
+elseif (!$FORCE_DEFAULTS) {
     do {
         $GroupTag = Read-Host -Prompt "Enter the group tag of the device (Default: '$($DEFAULT_GROUP_TAG)')"
         if (!$GroupTag) {
